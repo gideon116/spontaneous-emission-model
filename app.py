@@ -74,11 +74,10 @@ def nii(T, Eg=1.42, N_D=1e23, dn=1e20, m_e=0.063, m_h=0.51, doped=True):
     return Efe, Efh
 
 # sidebar
-st.sidebar.title("Upload & preprocess your PL spectrum")
+st.sidebar.title("Spontaneous Emission Model for Nonequilibrium Conditions")
 
 
 # uploading
-st.sidebar.title("Upload or use default GaAs PL")
 use_default = st.sidebar.checkbox("Use default GaAs PL", False)
 
 if use_default:
@@ -88,11 +87,13 @@ if use_default:
 
 else:
     uploaded = st.sidebar.file_uploader(
-        "Or upload your own PL file (two columns: wl[nm], intensity)",
+        "Or upload your own PL file",
         type=["txt", "csv"]
     )
     if uploaded is None:
-        st.sidebar.info("Upload a two-column PL file or check “Use default GaAs PL”.")
+        st.sidebar.info("Make sure you have two columns: one labeled 'wl' that has wavelengths in nm, \
+            and another column containing the PL intensity. If you just want to try the model out, \
+                        select 'Use default GaAs PL'")
         st.stop()
     try:
         raw = uploaded.getvalue().decode("utf-8")
@@ -189,20 +190,24 @@ T = st.sidebar.slider("Temperature (K)", 50, 400, 300, 1)
 th = st.sidebar.slider("θ exponent", 0.5, 3.0, 1.0, 0.05)
 
 # Fermi levels
-use_manual_F  = st.sidebar.checkbox(r"Manually set $\mathsf{E_F^e}$ and $\mathsf{E_F^h}$", False)
-if use_manual_F:
-    Ef = st.sidebar.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 1.25)
-    Eh = st.sidebar.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 0.15)
-else:
-    st.sidebar.markdown("Use **nii** estimate:")
-    doped = st.sidebar.checkbox("Doped material?", True)
-    N_D = st.sidebar.number_input("N_D (cm⁻³)", 1e14, 1e29, 1e17, 1e17, format="%.2e")
-    dn = st.sidebar.number_input("Δn  (cm⁻³)", 1e14, 1e29, 2e23, 1e20, format="%.2e")
-    m_e = st.sidebar.number_input("mₑ* / m₀", 0.01, 5.0, 0.063, 0.01)
-    m_h = st.sidebar.number_input("mₕ* / m₀", 0.01, 5.0, 0.51, 0.01)
+with st.sidebar.expander("Processingd options", expanded=True):
+    get_manual_QFLS = st.selectbox(r"**Choose how to detemine $\mathsf{E_F^e}$ and $\mathsf{E_F^h}$**", 
+                            ["Calculate", "Manual"])
 
-    Ef, Eh = nii(T, Eg=Eg, N_D=N_D, dn=dn, m_e=m_e, m_h=m_h, doped=doped)
-    st.sidebar.latex(fr"E_F^e = {Ef:.4f}\,\mathrm{{eV}},\quad E_F^h = {Eh:.4f}\,\mathrm{{eV}}")
+    if get_manual_QFLS == "Manual":
+        Ef = st.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 1.25)
+        Eh = st.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 0.15)
+    else:
+        dn = st.slider("Δn = 10^x (m⁻³)", 14.0, 29.0, 23.0, step=0.001)
+        dn = 10 ** dn
+
+        doped = st.checkbox("Doped material?", True)
+        N_D = st.number_input("N_D (m⁻³)", 1e14, 1e29, 1e17, 1e17, format="%.2e")
+        m_e = st.number_input("mₑ* / m₀", 0.01, 5.0, 0.063, 0.01)
+        m_h = st.number_input("mₕ* / m₀", 0.01, 5.0, 0.51, 0.01)
+
+        Ef, Eh = nii(T, Eg=Eg, N_D=N_D, dn=dn, m_e=m_e, m_h=m_h, doped=doped)
+        st.latex(fr"E_F^e = {Ef:.4f}\,\mathrm{{eV}},\quad E_F^h = {Eh:.4f}\,\mathrm{{eV}}")
 
 
 # calc
