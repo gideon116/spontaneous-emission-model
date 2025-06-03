@@ -182,27 +182,27 @@ hv   = 1240.0 / wl_proc
 # params
 st.sidebar.title("Model parameters")
 
-Eg = st.sidebar.slider("E₉ (eV)", 1.0, 2.0, 1.42, 0.001)
-Eu = st.sidebar.slider("Eᵤ (eV)", 0.001, 0.05, 0.009, 0.0005)
+Eg = st.sidebar.slider("E₉ (eV)", 1.0, 2.0, 1.42, 0.001, format="%.4f")
+Eu = st.sidebar.slider("Eᵤ (eV)", 0.001, 0.05, 0.009, 0.0005, format="%.4f")
 alpha0d = st.sidebar.slider("α₀ x d", 1.0, 100.0, 50.0)
 T = st.sidebar.slider("Temperature (K)", 50, 400, 300, 1)
 th = st.sidebar.slider("θ exponent", 0.5, 3.0, 1.0, 0.05)
 
 # Fermi levels
-use_manual_F  = st.sidebar.checkbox("Manually set E_F and E_H", False)
+use_manual_F  = st.sidebar.checkbox(r"Manually set $\mathsf{E_F^e}$ and $\mathsf{E_F^h}$", False)
 if use_manual_F:
-    Ef = st.sidebar.number_input("E_F (eV)",  0.0, Eg, 1.25)
-    Eh = st.sidebar.number_input("E_H (eV)",  0.0, Eg, 0.15)
+    Ef = st.sidebar.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 1.25)
+    Eh = st.sidebar.number_input(r"$\mathsf{E_F^e}$ (eV)",  0.0, Eg, 0.15)
 else:
     st.sidebar.markdown("Use **nii** estimate:")
     doped = st.sidebar.checkbox("Doped material?", True)
     N_D = st.sidebar.number_input("N_D (cm⁻³)", 1e14, 1e29, 1e17, 1e17, format="%.2e")
-    dn = st.sidebar.number_input("Δn  (cm⁻³)", 1e14, 1e29, 3e23, 1e20, format="%.2e")
+    dn = st.sidebar.number_input("Δn  (cm⁻³)", 1e14, 1e29, 2e23, 1e20, format="%.2e")
     m_e = st.sidebar.number_input("mₑ* / m₀", 0.01, 5.0, 0.063, 0.01)
     m_h = st.sidebar.number_input("mₕ* / m₀", 0.01, 5.0, 0.51, 0.01)
 
     Ef, Eh = nii(T, Eg=Eg, N_D=N_D, dn=dn, m_e=m_e, m_h=m_h, doped=doped)
-    st.sidebar.write(f"**E_F = {Ef:.4f} eV**, **E_H = {Eh:.4f} eV**")
+    st.sidebar.latex(fr"E_F^e = {Ef:.4f}\,\mathrm{{eV}},\quad E_F^h = {Eh:.4f}\,\mathrm{{eV}}")
 
 
 # calc
@@ -217,12 +217,17 @@ if norm_choice == "Yes":
     I_calc = I_calc / I_calc.max()
 
 # plot
+
 fig, ax = plt.subplots()
 ax.plot(hv, I_meas, label="Measured", lw=2)
-ax.plot(hv, I_calc, label="Model", lw=2, alpha=0.8)
+ax.plot(hv, I_calc, label="Model",    lw=2, alpha=0.8)
 ax.set_xlabel("Photon energy (eV)")
-ax.set_ylabel("Intensity (arb.)")
+ax.set_ylabel(r"Absolute Intensity ($\mathsf{\frac{Photons}{m^2 \ s \ eV}}$)")
 ax.legend()
 ax.invert_xaxis()
+
 st.pyplot(fig)
 
+# Now print EF and EH *below* the figure, each on its own line:
+st.markdown(rf"$E_F^e = {Ef:.4f}\,\mathrm{{eV}}$")
+st.markdown(rf"$E_F^h = {Eh:.4f}\,\mathrm{{eV}}$")
