@@ -76,33 +76,44 @@ def nii(T, Eg=1.42, N_D=1e23, dn=1e20, m_e=0.063, m_h=0.51, doped=True):
 # sidebar
 st.sidebar.title("Upload & preprocess your PL spectrum")
 
-# uploading
-uploaded = st.sidebar.file_uploader("PL spectrum (CSV, two columns: wavelength[nm], intensity)", type=["csv", "txt"])
 
-if uploaded is None:
-    st.info("Upload a two-column PL file first.")
-    st.stop()
-try:
-    raw = uploaded.getvalue().decode("utf-8")
-except UnicodeDecodeError:
-    st.error("Cannot decode file - must be plain text (UTF-8).")
-    st.stop()
+# uploading
+st.sidebar.title("Upload or use default GaAs PL")
+use_default = st.sidebar.checkbox("Use default GaAs PL", False)
+
+if use_default:
+    
+    default_path = "default_GaAs_PL.txt"
+    raw = open("GaAs_PL.txt", "r").read()
+
+else:
+    uploaded = st.sidebar.file_uploader(
+        "Or upload your own PL file (two columns: wl[nm], intensity)",
+        type=["txt", "csv"]
+    )
+    if uploaded is None:
+        st.sidebar.info("Upload a two-column PL file or check “Use default GaAs PL”.")
+        st.stop()
+    try:
+        raw = uploaded.getvalue().decode("utf-8")
+    except UnicodeDecodeError:
+        st.sidebar.error("Cannot decode file - must be plain ASCII/UTF-8 text.")
+        st.stop()
+
 
 lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
 header = lines[0].replace(",", "\t").split("\t")
-
-# ensure wl or wavelength
 if len(header) != 2:
-    st.error("File must have exactly **two** columns: `wl` and one intensity column.")
+    st.sidebar.error("File must have exactly two columns: wavelength + intensity.")
     st.stop()
 if header[0].lower() not in ("wl", "wavelength", "lambda"):
-    st.error("First column must be wavelength - header like `wl` or `wavelength`.")
+    st.sidebar.error("First column header must be 'wl' or 'wavelength'.")
     st.stop()
 
 try:
-    arr = np.loadtxt(io.StringIO("\n".join(lines[1:])), delimiter=None)
+    arr = np.loadtxt(io.StringIO("\n".join(lines[1:])))
 except Exception as e:
-    st.error(f"Could not parse numeric data: {e}")
+    st.sidebar.error(f"Could not parse numeric data: {e}")
     st.stop()
 
 wl = arr[:, 0]
