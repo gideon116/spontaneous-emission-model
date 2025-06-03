@@ -197,7 +197,7 @@ else:
     st.sidebar.markdown("Use **nii** estimate:")
     doped = st.sidebar.checkbox("Doped material?", True)
     N_D = st.sidebar.number_input("N_D (cm⁻³)", 1e14, 1e29, 1e17, 1e17, format="%.2e")
-    dn = st.sidebar.number_input("Δn  (cm⁻³)", 1e14, 1e29, 1e20, 1e20, format="%.2e")
+    dn = st.sidebar.number_input("Δn  (cm⁻³)", 1e14, 1e29, 3e23, 1e20, format="%.2e")
     m_e = st.sidebar.number_input("mₑ* / m₀", 0.01, 5.0, 0.063, 0.01)
     m_h = st.sidebar.number_input("mₕ* / m₀", 0.01, 5.0, 0.51, 0.01)
 
